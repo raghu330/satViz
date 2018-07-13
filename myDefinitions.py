@@ -552,7 +552,7 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
             # end if condition
 
             # Load the scene
-            scn.load([composite])
+            # scn.load([composite])
 
             # India Specific Scene
             indScn = scn.resample("IndiaSC")
