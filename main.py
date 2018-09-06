@@ -23,7 +23,7 @@ import os, glob
 import numpy as np
 from datetime import datetime
 # import necessary custom made def modules
-from myDefinitions import dateTimeManipulation, mkFldrs, deCmprss, msg1Proc1_5, msg1RGBProc
+from myDefinitions import dateTimeManipulation, mkFldrs, deCmprss, msg1Proc1_5, msg1NDVI, msg1RGBProc
 # end of module importing business
 
 # print stuff for log header
@@ -65,10 +65,11 @@ for tt in procTmStmps:
                 print("\n >>>>> EPI file too exists, Lemme proceed with decompression & processing \n \n")
                 # decompress the files first
                 deCmprss(msg1Src, exeDir, datDir, logDir, dateSnap, tt)
+                os.chdir(basDir)
                 print("\n <<<<< Finished decompressing scheme, exiting from deCmprss() \n")
                 # call the main processing modules.
                 msg1Proc1_5(dateSnap, tt, fldrs)
-                # print("\n <<<<< Finished processing for Level-1.5 data, exiting from msg1Proc1_5() \n")
+                msg1NDVI(dateSnap, tt, fldrs)
                 msg1RGBProc(dateSnap,tt, fldrs)
                 print("\n <<<<< Finished processing for RGB Data products, exiting from msg1RGBProc() \n")
             else:
@@ -82,7 +83,7 @@ for tt in procTmStmps:
     os.chdir(basDir)
 # end-for loop
 # end-main
-#
+
 # if __name__ == "__main__":
 #     from datetime import datetime
 #     main()

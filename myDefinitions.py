@@ -42,7 +42,7 @@ def dateTimeManipulation():
     sec = tm[2]
 
     # Past 2 hour time
-    dt_2 = str(datetime.utcnow() - timedelta(hours = 5)).split()
+    dt_2 = str(datetime.utcnow() - timedelta(hours = 1.0)).split()
     yr_2 = dt_2[0].split('-')[0]
     mm_2 = dt_2[0].split('-')[1]
     dd_2 = dt_2[0].split('-')[2]
@@ -180,14 +180,24 @@ def embellish(basDir, GSHHS_ROOT, imgStr, ii, dateSnap, timeSnap):
 
     # Add logos
     dc = dag(img)
-    dc.add_logo(basDir + 'logo/NCMRWF.png', height = 75.0)
-    # dc.add_logo(basDir + 'logo/imdlogo.jpg', height = 75.0)
+    # dc.add_logo(basDir + 'logo/NCMRWF.png', height = 75.0)
+    dc.add_logo(basDir + 'logo/NCMRWF.png', height = 75.0, bg='yellow')
 
     # Add basic text information
     capStr = ii
     textStr = "MSG-1: SEVIRI [" + capStr + "]\n" + dateSnap + '\n' + timeSnap + ' UTC'
-    fontClr = aggdraw.Font((255, 255, 255), "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
+    # fontClr = aggdraw.Font((255, 255, 255), "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
+    fontClr = aggdraw.Font('blue', "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
     dc.add_text(textStr, font = fontClr)
+
+    # Adding partner's logos
+    dc.align_right()
+    dc.add_logo(basDir + 'logo/imdlogo.jpg', height=75.0)
+    dc.align_left()
+    dc.align_bottom()
+    dc.add_logo(basDir + 'logo/eumetsatLogo.jpg', height=50.0)
+    dc.align_right()
+    dc.add_logo(basDir + 'logo/pytroll-logo.png', height = 50.0)
 
     # Add coastline, grid to the image
     # Set up projection info for coastlines
@@ -426,57 +436,64 @@ def msg1Proc1_5(dateSnap, avail_times, fldrs):
 
     avail_times = str(avail_times).split()
     for tt in avail_times:
-        # Start for-loop-1
-        print("..Started processing for time: %s" % tt)
-        searchStr = datDir + 'H-000-MSG1*' + dateSnap + tt + '-*'
-        files = glob.glob(searchStr)
-        #  for testing
-        print(">>>>>>>>>> For Testing <<<<<<<<<<")
-        print("datDir is set to %s: " % datDir)
-        print("Search string is %s" % searchStr)
-        print(files)
+        try:
+            # Start for-loop-1
+            print("..Started processing for time: %s" % tt)
+            searchStr = datDir + 'H-000-MSG1*' + dateSnap + tt + '-*'
+            files = glob.glob(searchStr)
+            #  for testing
+            print(">>>>>>>>>> For Testing <<<<<<<<<<")
+            print("datDir is set to %s: " % datDir)
+            print("Search string is %s" % searchStr)
+            print(files)
 
-        # Start reading filename in satpy
-        scn = Scene(filenames=files, reader='hrit_msg')
+            # Start reading filename in satpy
+            scn = Scene(filenames=files, reader='hrit_msg')
 
-        # Get the dataset names in the scene
-        allChnls = scn.all_dataset_names()
-        allChnls.remove('HRV')          # due to higher resolution
+            # Get the dataset names in the scene
+            allChnls = scn.all_dataset_names()
+            allChnls.remove('HRV')          # due to higher resolution
 
-        # Save the individual channels (except HRV) as separate gray-scale GeoTIFF files..
-        for ii in allChnls:
-            str(ii).split()
-            print("Working on channel: %s" % ii)
-            scn.load(str(ii).split())
-            indImg = scn.resample('IndiaSC')
-            print(indImg)
+            # Save the individual channels (except HRV) as separate gray-scale GeoTIFF files..
+            for ii in allChnls:
+                try:
+                    str(ii).split()
+                    print("Working on channel: %s" % ii)
+                    scn.load(str(ii).split())
+                    indImg = scn.resample('IndiaSC')
 
-            # Save as netCDF data
-            outImgStr1 = outDir + 'ind_MSG1-Band_' + ii + '_' + dateSnap + '_' + tt + '.nc'
-            # indImg.save_datasets(writer = 'cf', filename = outImgStr1)
-            nc_write_sat_level_1_5(indImg, outImgStr1, ii)
+                    # Save as netCDF data
+                    outImgStr1 = outDir + 'ind_MSG1-Band_' + ii + '_' + dateSnap + '_' + tt + '.nc'
+                    nc_write_sat_level_1_5(indImg, outImgStr1, ii)
 
-            # Save as Full Resolution GeoTIFF files
-            outImgStr2 = geoTdir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.tiff'
-            print("For Testing: >>>>>>>> outImgStr2 = %s" % outImgStr2)
-            indImg.save_dataset(ii, filename = outImgStr2, writer = 'geotiff')
-            # Add graphics
-            img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, ii, dateSnap, tt)
-            img2.save(outImgStr2)
+                    # Save as Full Resolution GeoTIFF files
+                    outImgStr2 = geoTdir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.tiff'
+                    indImg.save_dataset(ii, filename = outImgStr2, writer = 'geotiff')
+                    # Add graphics
+                    img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, ii, dateSnap, tt)
+                    img2.save(outImgStr2)
 
-            # Save the data as resized png files
-            outImgStr3 = webDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
-            indImg.save_dataset(ii, filename = outImgStr3, writer = "simple_image")
-            outImgStr3 = imResize(outImgStr3)
-            # Add graphics
-            img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, ii, dateSnap, tt)
-            img3.save(outImgStr3)
+                    # Save the data as resized png files
+                    outImgStr3 = webDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
+                    indImg.save_dataset(ii, filename = outImgStr3, writer = "simple_image")
+                    outImgStr3 = imResize(outImgStr3)
+                    # Add graphics
+                    img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, ii, dateSnap, tt)
+                    img3.save(outImgStr3)
 
-            # unload the read channel data
-            scn.unload(str(ii).split())
-            print("Finished processing for channel: %s " % ii)
-        # end for-loop
-        print("Finished processing for time-stamp: %s" % tt)
+                    # unload the read channel data
+                    scn.unload(str(ii).split())
+                    print("Finished processing for channel: %s " % ii)
+                except:
+                    print("Something went wrong with this Channel: %s" % ii)
+                    continue
+                # end try-except block
+            #end for-loop
+            print("Finished processing for time-stamp: %s" % tt)
+        except:
+            print("Something went wrong with this time: %s" % tt)
+            continue
+        # end try-except block
     # end for-loop
 # end-definition
 
@@ -502,7 +519,7 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
 
     # Start the logic
     debug_on()
-    print("\n \t \t \t STARTING THE msg1Proc1_5 run @ time: %s \t \t \t \n \n" % str(datetime.now()))
+    print("\n \t \t \t STARTING THE msg1RGBProc run @ time: %s \t \t \t \n \n" % str(datetime.now()))
     print("\n.Processing Date set is: %s" % dateSnap)
 
     #  Test whether all data folders are appropriately set or not.
@@ -524,7 +541,7 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
         scn = Scene(filenames=files, reader='hrit_msg')
 
         # loop into available composites
-        for composite in ['natural', 'ir_overview', 'night_fog', 'convection', 'airmass']:
+        for composite in ['natural', 'ir_overview', 'night_fog', 'convection', 'dust', 'airmass', 'cloud_top_temperature', 'cloud_top_height', 'cloudtype', 'cloud_top_phase', 'cloud_top_pressure', 'cloudmask']:
             if (composite == 'natural'):
                 prodStr = 'NAT'
                 capStr = 'Quasi True Colour'
@@ -549,39 +566,62 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
             elif (composite == 'airmass'):
                 prodStr = 'airM'
                 capStr = 'Air Mass'
+            elif (composite == 'dust'):
+                prodStr = 'dust'
+                capStr = 'DUST'
+            elif (composite == 'cloud_top_height'):
+                prodStr = 'CTH'
+                capStr = 'Cloud Top Height'
+            elif (composite == 'cloudtype'):
+                prodStr = 'CType'
+                capStr = 'Cloud Type'
+            elif (composite == 'cloud_top_pressure'):
+                prodStr = 'CTP'
+                capStr = 'Cloud Top Pressure'
+            elif (composite == 'cloud_top_phase'):
+                prodStr = 'CTPh'
+                capStr = 'Cloud Top Phase'
+            elif (composite == 'cloudmask'):
+                prodStr = 'CMask'
+                capStr = 'Cloud Mask'
             # end if condition
 
-            # Load the scene
-            # scn.load([composite])
+            try:
+                # Load the scene
+                scn.load([composite])
 
-            # India Specific Scene
-            indScn = scn.resample("IndiaSC")
-            indScn.load([composite])
+                # India Specific Scene
+                indScn = scn.resample("IndiaSC")
+                indScn.load([composite])
 
-            # # Save as netCDF data
-            # outImgStr1 = outDir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.nc'
-            # # indImg.save_datasets(writer = 'cf', filename = outImgStr1)
-            # nc_write_sat_level_1_5(indScn, outImgStr1, prodStr)
+                # # Save as netCDF data ---- TO BE IMPLEMENTED ----
+                # outImgStr1 = outDir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.nc'
+                # # indImg.save_datasets(writer = 'cf', filename = outImgStr1)
+                # nc_write_sat_level_1_5(indScn, outImgStr1, prodStr)
 
-            # Save as Full Resolution GeoTIFF files
-            outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
-            indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
-            # Add graphics
-            img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
-            img2.save(outImgStr2)
+                # Save as Full Resolution GeoTIFF files
+                outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
+                indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
+                # Add graphics
+                img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+                img2.save(outImgStr2)
 
-            # Save the data as resized png files
-            outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
-            indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
-            outImgStr3 = imResize(outImgStr3)
-            # Add graphics
-            img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, capStr, dateSnap, tt)
-            img3.save(outImgStr3)
+                # Save the data as resized png files
+                outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+                indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
+                outImgStr3 = imResize(outImgStr3)
+                # Add graphics
+                img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, capStr, dateSnap, tt)
+                img3.save(outImgStr3)
 
-            # unload the read channel data
-            scn.unload([composite])
-            indScn.unload([composite])
-            print("Finished processing for RGB Composite: %s " % composite)
+                # unload the read channel data
+                scn.unload([composite])
+                indScn.unload([composite])
+                print("Finished processing for RGB Composite: %s " % composite)
+            except:
+                print("Something went wrong with this RGB composite: %s" % composite)
+                continue
+            # end try-except block
         # end for-loop
 
         #Finished time slots
@@ -597,5 +637,169 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
     # end-for-loop
     print("msg1RGBProc() says: Finished with processing of time-slot - %s - at: %s " % (tt, str(datetime.now())))
 # end-definition
+
+# definition-9
+def msg1NDVI(dateSnap, avail_times, fldrs):
+    """
+    What does this function do?
+    This definition/function is meant for computing NDVI from SEVIRI data
+
+    Ref: https://nbviewer.jupyter.org/github/pytroll/pytroll-examples/blob/master/satpy/hrit_msg_tutorial.ipynb
+
+    :param dateSnap:
+    :param avail_times:
+    :param fldrs:
+    :return: NDVI
+    """
+
+    # Start the logic
+    import os, sys, glob
+    from satpy.utils import debug_on
+    from satpy.scene import Scene
+    from satpy.dataset import combine_metadata
+    from datetime import datetime
+    from myDefinitions import nc_write_sat_level_2, embellish, imResize
+
+    debug_on()
+
+    print("\n \t \t \t STARTING THE msg1NDVI run @ time: %s \t \t \t \n \n" % str(datetime.now()))
+    print("\n.Processing Date set is: %s" % dateSnap)
+
+    #  Test whether all data folders are appropriately set or not.
+    basDir, datDir, outDir, logDir, webDir, geoTdir, GSHHS_ROOT = fldrs
+    print("\n.Base directory is set to: %s" % basDir)
+    print("\n.Data directory is set to %s" % datDir)
+    print("\n.NetCDF output directory is set to: %s" % outDir)
+    print("\n.Log directory is set to: %s" % logDir)
+    print("\n.Web directory is set to: %s" % webDir)
+    print("\n.GeoTiff directory is set to: %s" % geoTdir)
+
+    avail_times = str(avail_times).split()
+    for tt in avail_times:
+        # Start for-loop-1
+        print("..Started processing for time: %s" % tt)
+        files = glob.glob(datDir + 'H-000-MSG1*' + dateSnap + tt + '-*')
+
+        # Start reading filename in satpy
+        scn = Scene(filenames=files, reader='hrit_msg')
+
+        #  start the NDVI computation
+        scn.load(['VIS006', 0.6])
+        scn.load(['VIS008', 0.8])
+        ndvi = (scn[0.8] - scn[0.6]) / (scn[0.8] + scn[0.6])
+        ndvi.attrs = combine_metadata(scn[0.6], scn[0.8])
+        scn['ndvi'] = ndvi
+
+        composite = 'ndvi'
+        prodStr = 'ndvi'
+        capStr = 'NDVI'
+
+        # resample the data to Indian region
+        indScn = scn.resample('IndiaSC')
+
+        #  save the data
+        # # Save as netCDF data ---- TO BE IMPLEMENTED ----
+        outImgStr1 = outDir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.nc'
+        nc_write_sat_level_2(indScn, outImgStr1, prodStr)
+
+        # Save as Full Resolution GeoTIFF files
+        outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
+        indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
+        # Add graphics
+        img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+        img2.save(outImgStr2)
+
+        # Save the data as resized png files
+        outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+        indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
+        outImgStr3 = imResize(outImgStr3)
+        # Add graphics
+        img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, capStr, dateSnap, tt)
+        img3.save(outImgStr3)
+        print("msg1NDVI() says: Finished with processing of time-slot - %s - at: %s " % (tt, str(datetime.now())))
+    # end for-loop
+# end definition
+
+#  definttion-10
+def nc_write_sat_level_2(imgScn, outImgStr, prodStr):
+    """
+    What does this code do?
+    This code takes the Satellite level 2 derived data as satpy-scene object from
+    which the dask-array data is read and writes it to a netCDF file.
+
+    :param imgScn:
+    :param outImgStr:
+    :param prodStr:
+    :return:
+    """
+    # import necessary modules
+    import dask
+    import netCDF4 as nc4
+    from datetime import datetime
+
+    # Access the data from the scene object
+    dataArray = imgScn[prodStr]
+    satData = dataArray.compute()
+    sData = satData.data
+    lons_array, lats_array = satData.attrs['area'].get_lonlats()
+    lon = lons_array[0]
+    lat = lats_array[:,0]
+
+    # Create the netCDF dataset template
+    f = nc4.Dataset(outImgStr, 'w', format = 'NETCDF4')
+    msg8_grp = f.createGroup('satellite_data')
+    msg8_grp.description = "Satellite Level 2 Derived Data Product: " + prodStr
+
+    # Specify the dimensions
+    # msg8_grp.createDimension('time', None)
+    msg8_grp.createDimension('lons', len(lon))
+    msg8_grp.createDimension('lats', len(lat))
+
+    # Building the variables
+    if prodStr == 'ndvi':
+        longitude = msg8_grp.createVariable('Longitude', 'f4', 'lons')
+        latitude = msg8_grp.createVariable('Latitude', 'f4', 'lats')
+        # startTime = msg8_grp.createVariables('Start_Time', 'i4', 'time')
+        sat_data = msg8_grp.createVariable('Satellite_Channel_Data', 'f4', ('lats', 'lons'))
+        # sat_data = msg8_grp.createVariable('Satellite_Channel_Data', 'f4', ('time', 'lons', 'lats'))
+
+        # Ingest the actual data
+        # longitude[:] = lons_array
+        # latitude[:] = lats_array
+        longitude[:] = lon
+        latitude[:] = lat
+        sat_data[:, :] = sData
+        # sat_data[0,:,:] = sData
+        # startTime = datetime.toordinal(satData.attrs['start_time'])
+
+        # Adding Attributes
+        longitude.units = 'degrees east'
+        latitude.units = 'degrees north'
+        # startTime.units = 'days since Jan 01, 0001'
+        # From the Satellite Data
+        sat_data.sensor = satData.attrs['sensor']
+        sat_data.platform = satData.attrs['platform_name']
+        sat_data.satellite_longitude = satData.attrs['satellite_longitude']
+        sat_data.satellite_latitude = satData.attrs['satellite_latitude']
+        sat_data.standard_name = 'normalized_difference_vegetation_index'
+        sat_data.product_name = satData.attrs['name']
+        sat_data.units = 'ratio'
+        sat_data.resolution = satData.attrs['resolution']
+        sat_data.fillValue = satData.attrs['_FillValue']
+        sat_data.start_time = datetime.toordinal(satData.attrs['start_time'])
+        sat_data.end_time = datetime.toordinal(satData.attrs['end_time'])
+        sat_data.projection = satData.attrs['area'].proj_dict['proj']
+        sat_data.ellipsoid = satData.attrs['area'].proj_dict['ellps']
+        sat_data.upper_left_lon_lat = str(satData.attrs['area'].outer_boundary_corners[0])
+        sat_data.upper_right_lon_lat = str(satData.attrs['area'].outer_boundary_corners[1])
+        sat_data.lower_right_lon_lat = str(satData.attrs['area'].outer_boundary_corners[2])
+        sat_data.lower_left_lon_lat = str(satData.attrs['area'].outer_boundary_corners[3])
+        # Custom attributes
+        sat_data.software = 'Pytroll_Satpy'
+        sat_data.processed_by = 'MNRS, NCMRWF, Ministry of Earth Sciences'
+# end if-condition
+    f.close()
+    print("\n Finished writing the netCDF file for NDVI product")
+# end definition
 
 # EOF
