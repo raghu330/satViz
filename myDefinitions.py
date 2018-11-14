@@ -42,7 +42,7 @@ def dateTimeManipulation():
     sec = tm[2]
 
     # Past 2 hour time
-    dt_2 = str(datetime.utcnow() - timedelta(hours = 1.0)).split()
+    dt_2 = str(datetime.utcnow() - timedelta(hours = 1.5)).split()
     yr_2 = dt_2[0].split('-')[0]
     mm_2 = dt_2[0].split('-')[1]
     dd_2 = dt_2[0].split('-')[2]
@@ -398,7 +398,7 @@ def deCmprss(msg1Src, exeDir, datDir, logDir, dateSnap, timeSnap):
         ff.close()
     # end if-condition to check whether the data is decompressed or not!
     print("deCmprss.py says: Finished with decompression of time-slot - %s - at Time: %s" % (timeSnap, str(datetime.now())))
-# end-definition
+# end-definition:q
 
 # definition-7
 def msg1Proc1_5(dateSnap, avail_times, fldrs):
@@ -470,8 +470,8 @@ def msg1Proc1_5(dateSnap, avail_times, fldrs):
                     outImgStr2 = geoTdir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.tiff'
                     indImg.save_dataset(ii, filename = outImgStr2, writer = 'geotiff')
                     # Add graphics
-                    img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, ii, dateSnap, tt)
-                    img2.save(outImgStr2)
+                    # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, ii, dateSnap, tt)
+                    # img2.save(outImgStr2)
 
                     # Save the data as resized png files
                     outImgStr3 = webDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
@@ -603,8 +603,8 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
                 outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
                 indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
                 # Add graphics
-                img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
-                img2.save(outImgStr2)
+                # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+                # img2.save(outImgStr2)
 
                 # Save the data as resized png files
                 outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
@@ -679,6 +679,8 @@ def msg1NDVI(dateSnap, avail_times, fldrs):
         # Start for-loop-1
         print("..Started processing for time: %s" % tt)
         files = glob.glob(datDir + 'H-000-MSG1*' + dateSnap + tt + '-*')
+        print(">>>>>>>>>>> Testing 123: <<<<<<<<<<<<<<<\n")
+        print(files)
 
         # Start reading filename in satpy
         scn = Scene(filenames=files, reader='hrit_msg')
@@ -706,8 +708,8 @@ def msg1NDVI(dateSnap, avail_times, fldrs):
         outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
         indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
         # Add graphics
-        img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
-        img2.save(outImgStr2)
+        # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+        # img2.save(outImgStr2)
 
         # Save the data as resized png files
         outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
