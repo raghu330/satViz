@@ -70,7 +70,7 @@ def mkFldrs(dateSnap):
 
     # Set up basic data folders
     config = ConfigParser.ConfigParser()
-    configFilePath = r'/home/raghav/Work/satViz/scripts/setFldrs.txt'
+    configFilePath = r'/home/satviz/Work/scripts/setFldrs.txt'
     config.readfp(open(configFilePath))
 
     # Parse folder paths from configuration file
