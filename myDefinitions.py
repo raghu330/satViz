@@ -41,8 +41,8 @@ def dateTimeManipulation():
     mins = tm[1]
     sec = tm[2]
 
-    # Past 2 hour time
-    dt_2 = str(datetime.utcnow() - timedelta(hours = 1.5)).split()
+    # Past 2 days test..
+    dt_2 = str(datetime.utcnow() - timedelta(hours = 0.4)).split()
     yr_2 = dt_2[0].split('-')[0]
     mm_2 = dt_2[0].split('-')[1]
     dd_2 = dt_2[0].split('-')[2]
@@ -70,7 +70,7 @@ def mkFldrs(dateSnap):
 
     # Set up basic data folders
     config = ConfigParser.ConfigParser()
-    configFilePath = r'/home/raghav/Work/satViz/setFldrs.txt'
+    configFilePath = r'/home/raghav/Work/satViz/scripts/setFldrs.txt'
     config.readfp(open(configFilePath))
 
     # Parse folder paths from configuration file
@@ -83,6 +83,7 @@ def mkFldrs(dateSnap):
     GSHHS_ROOT = config.get('paths', 'GSHHS_dir')
     srcDir = config.get('paths', 'srcDir')
     exeDir = config.get('paths', 'exeDir')
+    tmpDir = config.get('paths', 'tmpDir')
 
     # Set-up the appropriate paths
     datDir = datDir + dateSnap + '/'
@@ -94,35 +95,35 @@ def mkFldrs(dateSnap):
 
     # Create directories and log files if not present.
     if not os.path.exists(datDir):
-        os.mkdir(datDir)
+        os.makedirs(datDir)
         print("mkFldr() says: Created a new folder at %s " % datDir)
     else:
         print("datDir was already created! Check %s " % datDir)
     # end if-not condition
 
     if not os.path.exists(outDir):
-        os.mkdir(outDir)
+        os.makedirs(outDir)
         print("mkFldr() says: Created a new folder at %s " % outDir)
     else:
         print("outDir was already created! Check %s " % outDir)
     # end if-not condition
 
     if not os.path.exists(logDir):
-        os.mkdir(logDir)
+        os.makedirs(logDir)
         print("mkFldr() says: Created a new folder at %s " % logDir)
     else:
         print("logDir was already created! Check %s " % logDir)
     # end if-not condition
 
     if not os.path.exists(webDir):
-        os.mkdir(webDir)
+        os.makedirs(webDir)
         print("mkFldr() says: Created a new folder at %s " % webDir)
     else:
         print("webDir was already created! Check %s " % webDir)
     # end if-not condition
 
     if not os.path.exists(geoTdir):
-        os.mkdir(geoTdir)
+        os.makedirs(geoTdir)
         print("mkFldr() says: Created a new folder at %s " % geoTdir)
     else:
         print("geoTDir was already created! Check %s " % geoTdir)
@@ -139,7 +140,7 @@ def mkFldrs(dateSnap):
         open(deCmprssList, 'w').close()
     # end if-not condition
 
-    return basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT
+    return basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir
 # end definition
 
 # definition-3
@@ -187,7 +188,8 @@ def embellish(basDir, GSHHS_ROOT, imgStr, ii, dateSnap, timeSnap):
     capStr = ii
     textStr = "MSG-1: SEVIRI [" + capStr + "]\n" + dateSnap + '\n' + timeSnap + ' UTC'
     # fontClr = aggdraw.Font((255, 255, 255), "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
-    fontClr = aggdraw.Font('blue', "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
+    fontClr = aggdraw.Font('black', "/usr/share/fonts/truetype/DejaVuSerif.ttf", size = 18)
+    # fontClr = aggdraw.Font('blue', "/usr/share/fonts/liberation/LiberationMono-Bold.ttf", size = 18)
     dc.add_text(textStr, font = fontClr)
 
     # Adding partner's logos
@@ -212,6 +214,7 @@ def embellish(basDir, GSHHS_ROOT, imgStr, ii, dateSnap, timeSnap):
 
     # Add gridlines
     fontClr2 = ImageFont.truetype("/usr/share/fonts/truetype/DejaVuSerif.ttf", 14)
+    # fontClr2 = ImageFont.truetype("/usr/share/fonts/liberation/LiberationMono-Bold.ttf", 14)
     cw.add_grid(img, area_def, (10.0, 10.0), (2.0, 2.0), fontClr2, fill = "white", outline = 'lightblue',
                 minor_outline = 'lightblue')
 
@@ -373,7 +376,9 @@ def deCmprss(msg1Src, exeDir, datDir, logDir, dateSnap, timeSnap):
         print("\n...Skipping the decompression process for the time-stamp: %s" % timeSnap)
     else:
         print("\n...Decompressing for the time-stamp: %s" % timeSnap)
-
+        print("\n \t \t Testing 123: \n \n ")
+        searchComStr = srcDir, 'H-000-MSG1*' + timeSnap + '-C_'
+        print(searchComStr)
         ## Start the loop business
         flist = glob.glob(os.path.join(srcDir, 'H-000-MSG1*' + timeSnap + '-C_'))
 
@@ -385,9 +390,10 @@ def deCmprss(msg1Src, exeDir, datDir, logDir, dateSnap, timeSnap):
 
         ## Move the decompressed files from exeDir to datDir
         mvCmd = "mv " + exeDir + "H-000*__*" + dateSnap + timeSnap + "-* " + datDir
+        # mvCmd = "mv " + exeDir + "H-000*__*" + dateSnap +  "* " + datDir
         os.system(mvCmd)
-        cpCmdEPI = "cp " + srcDir + "*EPI*" + timeSnap + "* " + datDir
-        cpCmdPRO = "cp " + srcDir + "*PRO*" + timeSnap + "* " + datDir
+        cpCmdEPI = "cp " + srcDir + "*EPI*" + dateSnap + timeSnap + "* " + datDir
+        cpCmdPRO = "cp " + srcDir + "*PRO*" + dateSnap + timeSnap + "* " + datDir
         os.system(cpCmdEPI)
         os.system(cpCmdPRO)
 
@@ -415,24 +421,28 @@ def msg1Proc1_5(dateSnap, avail_times, fldrs):
     #- Start coding
     # import necessary modules
     import os, sys, glob
-    from satpy.utils import debug_on
+    #from satpy.utils import debug_on
     from satpy.scene import Scene
     from datetime import datetime
     from myDefinitions import nc_write_sat_level_1_5, embellish, imResize
 
     # Start the logic
-    debug_on()
+    #debug_on()
     print("\n \t \t \t STARTING THE msg1Proc1_5 run @ time: %s \t \t \t \n \n" % str(datetime.now()))
     print("\n.Processing Date set is: %s" % dateSnap)
 
     #  Test whether all data folders are appropriately set or not.
-    basDir, datDir, outDir, logDir, webDir, geoTdir, GSHHS_ROOT = fldrs
+    basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir = fldrs
     print("\n.Base directory is set to: %s" % basDir)
     print("\n.Data directory is set to %s" % datDir)
     print("\n.NetCDF output directory is set to: %s" % outDir)
     print("\n.Log directory is set to: %s" % logDir)
     print("\n.Web directory is set to: %s" % webDir)
     print("\n.GeoTiff directory is set to: %s" % geoTdir)
+    print("\n.msg1Src directory is set to: %s" % msg1Src)
+    print("\n.exeDir directory is set to: %s" % exeDir)
+    print("\n.GSHHS directory is set to: %s" % GSHHS_ROOT)
+    print("\n.tmpDir directory is set to: %s" % tmpDir)
 
     avail_times = str(avail_times).split()
     for tt in avail_times:
@@ -440,19 +450,19 @@ def msg1Proc1_5(dateSnap, avail_times, fldrs):
             # Start for-loop-1
             print("..Started processing for time: %s" % tt)
             searchStr = datDir + 'H-000-MSG1*' + dateSnap + tt + '-*'
+            # searchStr = msg1Src + 'H-000-MSG1*' + dateSnap + tt + '*'
+
             files = glob.glob(searchStr)
-            #  for testing
-            print(">>>>>>>>>> For Testing <<<<<<<<<<")
-            print("datDir is set to %s: " % datDir)
-            print("Search string is %s" % searchStr)
-            print(files)
 
             # Start reading filename in satpy
             scn = Scene(filenames=files, reader='hrit_msg')
 
-            # Get the dataset names in the scene
-            allChnls = scn.all_dataset_names()
-            allChnls.remove('HRV')          # due to higher resolution
+            available_comps = scn.available_composite_names()
+            channels_inverted = [s for s in available_comps if "_inv" in s]
+
+            # add the remaining 3 non-inverted channels & 3d channel
+            #allChnls = channels_inverted  + ["IR_016", "VIS006", "VIS008", "ir108_3d"]
+            allChnls = channels_inverted  + ["ir108_3d"]
 
             # Save the individual channels (except HRV) as separate gray-scale GeoTIFF files..
             for ii in allChnls:
@@ -460,26 +470,33 @@ def msg1Proc1_5(dateSnap, avail_times, fldrs):
                     str(ii).split()
                     print("Working on channel: %s" % ii)
                     scn.load(str(ii).split())
-                    indImg = scn.resample('IndiaSC')
+                    indImg = scn.resample('India_SC')
 
-                    # Save as netCDF data
-                    outImgStr1 = outDir + 'ind_MSG1-Band_' + ii + '_' + dateSnap + '_' + tt + '.nc'
-                    nc_write_sat_level_1_5(indImg, outImgStr1, ii)
+                    # # Save as netCDF data
+                    # outImgStr1 = outDir + 'ind_MSG1-Band_' + ii + '_' + dateSnap + '_' + tt + '.nc'
+                    # nc_write_sat_level_1_5(indImg, outImgStr1, ii)
 
-                    # Save as Full Resolution GeoTIFF files
-                    outImgStr2 = geoTdir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.tiff'
-                    indImg.save_dataset(ii, filename = outImgStr2, writer = 'geotiff')
+                    # # Save as Full Resolution GeoTIFF files
+                    # outImgStr2 = geoTdir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.tiff'
+                    # indImg.save_dataset(ii, filename = outImgStr2, writer = 'geotiff')
+
                     # Add graphics
                     # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, ii, dateSnap, tt)
                     # img2.save(outImgStr2)
 
                     # Save the data as resized png files
-                    outImgStr3 = webDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
+                    outImgStr3 = tmpDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
+                    outImgStr3w = webDir + 'ind_' + ii + '_' + dateSnap + '_' + tt + '.png'
                     indImg.save_dataset(ii, filename = outImgStr3, writer = "simple_image")
                     outImgStr3 = imResize(outImgStr3)
+
                     # Add graphics
                     img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, ii, dateSnap, tt)
                     img3.save(outImgStr3)
+
+                    #  move the tmp files to proper web area
+                    mv2WebCmd = 'mv ' + outImgStr3 + ' ' + outImgStr3w
+                    os.system(mv2WebCmd)
 
                     # unload the read channel data
                     scn.unload(str(ii).split())
@@ -512,63 +529,56 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
     #-Start coding
     # start the logic
     import os, sys, glob
-    from satpy.utils import debug_on
+    #from satpy.utils import debug_on
     from satpy.scene import Scene
     from datetime import datetime
     from myDefinitions import nc_write_sat_level_1_5, embellish, imResize
 
     # Start the logic
-    debug_on()
+    #debug_on()
     print("\n \t \t \t STARTING THE msg1RGBProc run @ time: %s \t \t \t \n \n" % str(datetime.now()))
     print("\n.Processing Date set is: %s" % dateSnap)
 
     #  Test whether all data folders are appropriately set or not.
-    basDir, datDir, outDir, logDir, webDir, geoTdir, GSHHS_ROOT = fldrs
+    basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir = fldrs
     print("\n.Base directory is set to: %s" % basDir)
     print("\n.Data directory is set to %s" % datDir)
     print("\n.NetCDF output directory is set to: %s" % outDir)
     print("\n.Log directory is set to: %s" % logDir)
     print("\n.Web directory is set to: %s" % webDir)
     print("\n.GeoTiff directory is set to: %s" % geoTdir)
+    print("\n.msg1Src directory is set to: %s" % msg1Src)
+    print("\n.exeDir directory is set to: %s" % exeDir)
+    print("\n.GSHHS directory is set to: %s" % GSHHS_ROOT)
+    print("\n.tmpDir directory is set to: %s" % tmpDir)
 
     avail_times = str(avail_times).split()
     for tt in avail_times:
         # Start for-loop-1
         print("..Started processing for time: %s" % tt)
-        files = glob.glob(datDir + 'H-000-MSG1*' + dateSnap + tt + '-*')
+        searchStr = datDir + 'H-000-MSG1*' + dateSnap + tt + '-*'
+        files = glob.glob(searchStr)
 
         # Start reading filename in satpy
         scn = Scene(filenames=files, reader='hrit_msg')
 
-        # loop into available composites
-        for composite in ['natural', 'ir_overview', 'night_fog', 'convection', 'dust', 'airmass', 'cloud_top_temperature', 'cloud_top_height', 'cloudtype', 'cloud_top_phase', 'cloud_top_pressure', 'cloudmask']:
-            if (composite == 'natural'):
-                prodStr = 'NAT'
-                capStr = 'Quasi True Colour'
-            elif (composite == 'night_fog'):
-                prodStr = 'NFog'
-                capStr = 'Night Fog'
-            elif (composite == 'convection'):
-                prodStr = 'CON'  # Problematic
-                capStr = 'Convection Activity'
+        #for composite in ['airmass', 'ash', 'cloudtop', 'colorized_ir_clouds', 'convection', 'day_microphysics', 'dust', 'fog', 'night_fog', 'natural_color', 'ir_overview']:
+        for composite in ['fog','ash', 'cloudtop', 'colorized_ir_clouds', 'day_microphysics']:
+            if (composite == 'airmass'):
+                prodStr = 'airM'
+                capStr = 'Air Mass'
+            elif (composite == 'ash'):
+                prodStr = 'ASH'
+                capStr = 'ASH'
+            elif (composite == 'cloudtop'):
+                prodStr = 'CTOP'
+                capStr = 'Cloud Top View'
             elif (composite == 'cloud_optical_thickness'):
                 prodStr = 'COP'  # 2 much Problematic
                 capStr = 'Cloud Optical Thickness'
-            elif (composite == 'realistic_colors'):
-                prodStr = 'REAL'  # problematic
-                capStr = 'Realistic RGB Colors'
-            elif (composite == 'ir_overview'):
-                prodStr = 'IR'
-                capStr = 'Infra-Red'
             elif (composite == 'cloud_top_temperature'):
                 prodStr = 'CTT'  # problematic
                 capStr = 'Cloud Top Temperature'
-            elif (composite == 'airmass'):
-                prodStr = 'airM'
-                capStr = 'Air Mass'
-            elif (composite == 'dust'):
-                prodStr = 'dust'
-                capStr = 'DUST'
             elif (composite == 'cloud_top_height'):
                 prodStr = 'CTH'
                 capStr = 'Cloud Top Height'
@@ -584,6 +594,30 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
             elif (composite == 'cloudmask'):
                 prodStr = 'CMask'
                 capStr = 'Cloud Mask'
+            elif (composite == 'colorized_ir_clouds'):
+                prodStr = 'C-IR'
+                capStr = 'Colourised IR Clouds'
+            elif (composite == 'convection'):
+                prodStr = 'CON'
+                capStr = 'Convection Activity'
+            elif (composite == 'day_microphysics'):
+                prodStr = 'd-MicPhy'
+                capStr = 'Day Microphysics'
+            elif (composite == 'dust'):
+                prodStr = 'dust'
+                capStr = 'DUST'
+            elif (composite == 'fog'):
+                prodStr = 'FOG'
+                capStr = 'Fog Activity'
+            elif (composite == 'night_fog'):
+                prodStr = 'NFog'
+                capStr = 'Night Time Fog Activity'
+            elif (composite == 'natural_color'):
+                prodStr = 'NAT'
+                capStr = 'Quasi True Colour'
+            elif (composite == 'ir_overview'):
+                prodStr = 'IR'
+                capStr = 'False Colour Composite of IR'
             # end if condition
 
             try:
@@ -591,7 +625,7 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
                 scn.load([composite])
 
                 # India Specific Scene
-                indScn = scn.resample("IndiaSC")
+                indScn = scn.resample("India_SC")
                 indScn.load([composite])
 
                 # # Save as netCDF data ---- TO BE IMPLEMENTED ----
@@ -599,20 +633,25 @@ def msg1RGBProc(dateSnap, avail_times, fldrs):
                 # # indImg.save_datasets(writer = 'cf', filename = outImgStr1)
                 # nc_write_sat_level_1_5(indScn, outImgStr1, prodStr)
 
-                # Save as Full Resolution GeoTIFF files
-                outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
-                indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
-                # Add graphics
-                # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
-                # img2.save(outImgStr2)
+                # # Save as Full Resolution GeoTIFF files
+                # outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
+                # indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
+                # # Add graphics
+                # # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+                # # img2.save(outImgStr2)
 
                 # Save the data as resized png files
-                outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+                outImgStr3 = tmpDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+                outImgStr3w= webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
                 indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
                 outImgStr3 = imResize(outImgStr3)
                 # Add graphics
                 img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, capStr, dateSnap, tt)
                 img3.save(outImgStr3)
+
+                #  move the tmp files to proper web area
+                mv2WebCmd = 'mv ' + outImgStr3 + ' ' + outImgStr3w
+                os.system(mv2WebCmd)
 
                 # unload the read channel data
                 scn.unload([composite])
@@ -654,33 +693,42 @@ def msg1NDVI(dateSnap, avail_times, fldrs):
 
     # Start the logic
     import os, sys, glob
-    from satpy.utils import debug_on
+    #from satpy.utils import debug_on
     from satpy.scene import Scene
     from satpy.dataset import combine_metadata
     from datetime import datetime
+    from trollimage.colormap import greys, greens
+    from trollimage.image import Image
     from myDefinitions import nc_write_sat_level_2, embellish, imResize
 
-    debug_on()
+    #debug_on()
 
     print("\n \t \t \t STARTING THE msg1NDVI run @ time: %s \t \t \t \n \n" % str(datetime.now()))
     print("\n.Processing Date set is: %s" % dateSnap)
 
     #  Test whether all data folders are appropriately set or not.
-    basDir, datDir, outDir, logDir, webDir, geoTdir, GSHHS_ROOT = fldrs
+    basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir = fldrs
     print("\n.Base directory is set to: %s" % basDir)
     print("\n.Data directory is set to %s" % datDir)
     print("\n.NetCDF output directory is set to: %s" % outDir)
     print("\n.Log directory is set to: %s" % logDir)
     print("\n.Web directory is set to: %s" % webDir)
     print("\n.GeoTiff directory is set to: %s" % geoTdir)
+    print("\n.msg1Src directory is set to: %s" % msg1Src)
+    print("\n.exeDir directory is set to: %s" % exeDir)
+    print("\n.GSHHS directory is set to: %s" % GSHHS_ROOT)
+    print("\n.tmpDir directory is set to: %s" % tmpDir)
 
     avail_times = str(avail_times).split()
     for tt in avail_times:
         # Start for-loop-1
         print("..Started processing for time: %s" % tt)
-        files = glob.glob(datDir + 'H-000-MSG1*' + dateSnap + tt + '-*')
-        print(">>>>>>>>>>> Testing 123: <<<<<<<<<<<<<<<\n")
-        print(files)
+        searchStr = datDir + 'H-000-MSG1*' + dateSnap + tt + '-*'
+        print("\n \t \t Testing 123: \n \n ")
+        print(searchStr)
+        files = glob.glob(searchStr)
+        #print("\n Testing 123: \n")
+        #print(files)
 
         # Start reading filename in satpy
         scn = Scene(filenames=files, reader='hrit_msg')
@@ -693,36 +741,53 @@ def msg1NDVI(dateSnap, avail_times, fldrs):
         scn['ndvi'] = ndvi
 
         composite = 'ndvi'
-        prodStr = 'ndvi'
+        prodStr = 'NDVI'
         capStr = 'NDVI'
 
         # resample the data to Indian region
-        indScn = scn.resample('IndiaSC')
+        indScn = scn.resample('India_SC')
 
         #  save the data
-        # # Save as netCDF data ---- TO BE IMPLEMENTED ----
-        outImgStr1 = outDir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.nc'
-        nc_write_sat_level_2(indScn, outImgStr1, prodStr)
-
-        # Save as Full Resolution GeoTIFF files
-        outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
-        indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
-        # Add graphics
-        # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
-        # img2.save(outImgStr2)
+        # # # Save as netCDF data ---- TO BE IMPLEMENTED ----
+        # outImgStr1 = outDir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.nc'
+        # nc_write_sat_level_2(indScn, outImgStr1, prodStr)
+        #
+        # # Save as Full Resolution GeoTIFF files
+        # outImgStr2 = geoTdir + 'ind_MSG-1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.tiff'
+        # indScn.save_dataset(composite, filename = outImgStr2, writer = 'geotiff')
+        # # Add graphics
+        # # img2 = embellish(basDir, GSHHS_ROOT, outImgStr2, capStr, dateSnap, tt)
+        # # img2.save(outImgStr2)
 
         # Save the data as resized png files
-        outImgStr3 = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
-        indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
+        outImgStr3 = tmpDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+        outImgStr3w = webDir + 'ind_MSG1_RGB_' + prodStr + '_' + dateSnap + '_' + tt + '.png'
+
+        #  Apply color palette from trollimage
+        ndvi_data = indScn['ndvi'].compute().data
+        ndvi_img = Image(ndvi_data, mode = "L")
+        # greys.set_range(ndvi_data.min(), -0.00001)
+        # greens.set_range(0,ndvi_data.max())
+        greys.set_range(-0.8, -0.00001)
+        greens.set_range(0, 0.8)
+        my_cm = greys + greens
+        ndvi_img.colorize(my_cm)
+        ndvi_img.save(outImgStr3)
+        # indScn.save_dataset(composite, filename = outImgStr3, writer = "simple_image")
         outImgStr3 = imResize(outImgStr3)
         # Add graphics
         img3 = embellish(basDir, GSHHS_ROOT, outImgStr3, capStr, dateSnap, tt)
         img3.save(outImgStr3)
+
+        #  move the tmp files to proper web area
+        mv2WebCmd = 'mv ' + outImgStr3 + ' ' + outImgStr3w
+        os.system(mv2WebCmd)
+
         print("msg1NDVI() says: Finished with processing of time-slot - %s - at: %s " % (tt, str(datetime.now())))
     # end for-loop
 # end definition
 
-#  definttion-10
+#  definition-10
 def nc_write_sat_level_2(imgScn, outImgStr, prodStr):
     """
     What does this code do?

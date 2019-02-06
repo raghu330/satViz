@@ -1,10 +1,11 @@
 [paths]
-basDir = /home/raghav/Work/satViz/
-datDir = /home/raghav/Work/satViz/Data/
-outDir = /home/raghav/Work/satViz/ncOut/
-logDir = /home/raghav/Work/satViz/Logs/
-geoTdir = /home/raghav/Work/satViz/gTiff/
-webDir = /home/raghav/Work/satViz/web/
-GSHHS_dir = /home/raghav/Work/satViz/GSHHS/
+basDir = /home/satviz/Work/
+datDir = /home/satviz/Work/Data/
+outDir = /home/satviz/Work/ncOut/
+logDir = /home/satviz/Work/Logs/
+geoTdir = /home/satviz/Work/gTiff/
+webDir = /home/satviz/Work/web/
+GSHHS_dir = /home/satviz/Work/GSHHS/
 srcDir = /home/gfsprod/data/idata/eumet/
-exeDir = /home/raghav/Work/satViz/2.06/xRITDecompress/
+exeDir = /home/satviz/Work/2.06/xRITDecompress/
+tmpDir = /home/satviz/Work/web/tmp/

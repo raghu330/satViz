@@ -22,8 +22,10 @@ def main():
     import os, glob
     import numpy as np
     from datetime import datetime
+
     # import necessary custom made def modules
     from myDefinitions import dateTimeManipulation, mkFldrs, deCmprss, msg1Proc1_5, msg1NDVI, msg1RGBProc
+    # from myDefinitions import *
     # end of module importing business
 
     # print stuff for log header
@@ -33,8 +35,8 @@ def main():
     dateSnap, dt, yr, mm, dd, tm, hrs, mins, dt_2, yr_2, mm_2, dd_2, tm_2, hrs_2, mins_2 = dateTimeManipulation()
 
     # Set-up the folders & log files
-    basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT = mkFldrs(dateSnap)
-    fldrs = [basDir, datDir, outDir, logDir, webDir, geoTdir, GSHHS_ROOT]
+    basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir = mkFldrs(dateSnap)
+    fldrs = [basDir, datDir, outDir, logDir, webDir, geoTdir, msg1Src, exeDir, GSHHS_ROOT, tmpDir]
 
     # Generate the time stamps when MSG1 data is available
     msgTmStmps = [str(datetime(int(yr),int(mm),int(dd),hr, mn).time().strftime("%H%M")) for hr in range(0,24) for mn in range(0,60,15)]
@@ -46,6 +48,8 @@ def main():
     presentTmStmp = int(hrs+mins)
     indx = np.array(np.where((msgTmStmps_int >= pastTmStmp) & (msgTmStmps_int <= presentTmStmp))).squeeze()
     procTmStmps = msgTmStmps[indx[0]:indx[-1]]
+    print(procTmStmps)
+    # procTmStmps.reverse()       # reverse the list to process for the most recent time stamp.
 
     # Start processing for Level-1.5 radiance/reflectance data
     for tt in procTmStmps:
@@ -68,9 +72,9 @@ def main():
                     os.chdir(basDir)
                     print("\n <<<<< Finished decompressing scheme, exiting from deCmprss() \n")
                     # call the main processing modules.
+                    msg1RGBProc(dateSnap,tt, fldrs)
                     msg1Proc1_5(dateSnap, tt, fldrs)
                     msg1NDVI(dateSnap, tt, fldrs)
-                    msg1RGBProc(dateSnap,tt, fldrs)
                     print("\n <<<<< Finished processing for RGB Data products, exiting from msg1RGBProc() \n")
                 else:
                     print("\n >>>> EPI File does NOT exist, Skipping the processing for this time step: %s" % tt)
